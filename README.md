@@ -9,9 +9,13 @@ This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.
 This is the number of cards that were learned.  A card is considered "learned" if it leaves the learning phase.  This ignores cards that were relearned.  This also plots the cumulative total.  When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of young cards plus the number of matured cards minus the number of learned cards
 that are suspended.
 
+![Learned Cards](https://raw.githubusercontent.com/matthayes/anki_progress_stats/master/screenshots/learned_cards.png)
+
 ### Net Matured Cards
 
 This is the net change in the number of matured cards, equal to the number of matured cards minus the number of cards that were mature but were forgotten.  A card is considered "matured" when its interval increases above 21 days and forgotten when its interval drop below 21 days.  This also plots the cumulative total.  When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of matured cards minus the number of matured cards that are suspended.
+
+![Net Matured Cards](https://raw.githubusercontent.com/matthayes/anki_progress_stats/master/screenshots/net_matured_cards.png)
 
 ### Matured Cards
 
