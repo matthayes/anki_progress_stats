@@ -81,6 +81,9 @@ def progressGraphs(*args, **kwargs):
 def _round_up_max(max_val):
   "Rounds up a maximum value."
 
+  # Prevent zero values raising an error.  Rounds up to 10 at a minimum.
+  max_val = max(10, max_val)
+
   e = int(math.log10(max_val))
   if e >= 2:
     e -= 1

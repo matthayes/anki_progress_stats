@@ -204,15 +204,22 @@ def get_stats(
   This can be used to limit the reviews to a particular deck, for example.
   """
 
-  stats_by_bucket = {}
+  stats_by_name = defaultdict(list)
 
-  min_bucket_index = None
-  max_bucket_index = None
+  min_bucket_index = 0
+  if num_buckets:
+    min_bucket_index = -1 * num_buckets + 1
+  max_bucket_index = 0
 
   all_reviews_for_bucket = _get_reviews(
     bucket_size_days, day_cutoff_seconds, num_buckets, additional_filter,
     db_conn=db_conn, db_table=db_table)
 
+  # If there is no review data then return empty dictionary. No graphs should be plotted.
+  if not all_reviews_for_bucket:
+    return stats_by_name
+
+  stats_by_bucket = {}
   for key in all_reviews_for_bucket:
     # Get reviews for a particular card in a particular bucket.
     # The key is (bucket_index, cid).
@@ -220,10 +227,10 @@ def get_stats(
 
     bucket_index, cid = key
 
-    if not min_bucket_index or bucket_index < min_bucket_index:
+    if bucket_index < min_bucket_index:
       min_bucket_index = bucket_index
 
-    if not max_bucket_index or bucket_index > max_bucket_index:
+    if bucket_index > max_bucket_index:
       max_bucket_index = bucket_index
 
     bucket_stats = stats_by_bucket.get(bucket_index)
@@ -242,13 +249,8 @@ def get_stats(
     if _has_learned(card_reviews):
       bucket_stats.stats.learned_cards += 1
 
-  if num_buckets:
-    min_bucket_index = min(min_bucket_index, -1 * num_buckets + 1)
-
-  max_bucket_index = max(max_bucket_index, 0)
-
-  stats_by_name = defaultdict(list)
   for bucket_index in range(min_bucket_index, max_bucket_index + 1):
+    # Fill in days missing reviews with zero values
     if bucket_index not in stats_by_bucket:
       stats_by_bucket[bucket_index] = _new_bucket_stats(bucket_index)
 
