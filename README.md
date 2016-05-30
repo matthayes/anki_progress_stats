@@ -1,19 +1,18 @@
 # Anki Progress Stats
 
-This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.  You can find it listed under [Anki addons](https://ankiweb.net/shared/addons/).
+This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.  You can find it listed under Anki addons [here](https://ankiweb.net/shared/info/266436365).
 
 ## Graphs
 
 ### Learned Cards
 
-This is the number of cards that were learned.  A card is considered "learned" if it leaves the learning phase.  This ignores cards that were relearned.  This also plots the cumulative total.  When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of young cards plus the number of matured cards minus the number of learned cards
-that are suspended.
+This is the number of cards that were learned.  A card is considered "learned" if it leaves the learning phase.  This ignores cards that were relearned.  This also plots the cumulative total. When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of young cards plus the number of matured cards plus the number of young and mature cards that are suspended.
 
 ![Learned Cards](https://raw.githubusercontent.com/matthayes/anki_progress_stats/master/screenshots/learned_cards.png)
 
 ### Net Matured Cards
 
-This is the net change in the number of matured cards, equal to the number of matured cards minus the number of cards that were mature but were forgotten.  A card is considered "matured" when its interval increases above 21 days and forgotten when its interval drop below 21 days.  This also plots the cumulative total.  When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of matured cards minus the number of matured cards that are suspended.
+This is the net change in the number of matured cards, equal to the number of matured cards minus the number of cards that were mature but were forgotten.  A card is considered "matured" when its interval increases above 21 days and forgotten when its interval drop below 21 days.  This also plots the cumulative total. When this is plotted over the deck lifetime, the final cumulative total roughly equals the number of matured cards plus the number of matured cards that are suspended.
 
 ![Net Matured Cards](https://raw.githubusercontent.com/matthayes/anki_progress_stats/master/screenshots/net_matured_cards.png)
 
@@ -27,7 +26,12 @@ This is the number of matured cards lost, as explained above.  This is included 
 
 ## Motivation
 
-Anki includes a Review Count graph that plots the total reviews for learning, relearning, young, and mature cards.  This graph is great if you want to know how many reviews occurred in each category, but it can be difficult understand progress using it.  Since one of the goals is to learn cards and have them eventually matured, this plugin tracks statistics for that specifically.
+Anki includes a Review Count graph that plots the total reviews for learning, relearning, young, and mature cards.  This graph is great if you want to know how many reviews occurred in each category, but it can be difficult to understand progress using it.  Since one of the goals is to learn cards and have them eventually mature, this plugin tracks statistics for that specifically.
+
+## Version History
+
+* 0.1: Initial Release
+* 0.2: Fix for error when no reviews
 
 ## License
 
