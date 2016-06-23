@@ -166,7 +166,10 @@ def _has_learned(card_reviews):
   for review in card_reviews.reviews:
     # We assume the card is no longer being learned once the new interval is above zero.
     # Learning intervals are in seconds (which is expressed as a negative number).
-    if review.lastIvl < 0 and review.ivl > 0:
+    # We check if the type is 0 (Learning) or 3 (Cram).  Technically we should only look at Learning
+    # cards, but Anki seems to mislabel cards being learned sometimes as Cram when they are in filtered deck.
+    # TODO need more robust way to determine card was learned for the first time
+    if (review.type == 0 or review.type == 3) and review.lastIvl < 0 and review.ivl > 0:
       return True
 
   return False
