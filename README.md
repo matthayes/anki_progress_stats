@@ -32,6 +32,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 
 * 0.1: Initial Release
 * 0.2: Fix for error when no reviews
+* 0.3: Fix learned cards wrong for filtered deck
 
 ## License
 
