@@ -164,9 +164,9 @@ def _has_learned(card_reviews):
   # If we were to compare the first and last reviews this could give us the wrong result as
   # when the card is relearned the interval will drop below zero again.
   for review in card_reviews.reviews:
-    # We assume the card is not longer being learned once the new interval is above zero.
+    # We assume the card is no longer being learned once the new interval is above zero.
     # Learning intervals are in seconds (which is expressed as a negative number).
-    if review.type == 0 and review.lastIvl < 0 and review.ivl > 0:
+    if review.lastIvl < 0 and review.ivl > 0:
       return True
 
   return False
