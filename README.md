@@ -35,6 +35,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.3: Fix learned cards wrong for filtered deck
 * 0.4: Fix Anki yaxis tick rounding issue
 * 0.5: Fix issue including relearned cards in Learned Cards graph
+* 0.6: Revert recent learned cards changes pending better solution for filtered decks
 
 ## License
 
