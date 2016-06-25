@@ -17,7 +17,7 @@ from collections import namedtuple, defaultdict
 
 # an individual review of a card with a bucket_index representing the time period the review
 # occurred in (e.g. which day, month, etc.)
-CardReview = namedtuple('CardReview', ['id', 'bucket_index', 'cid', 'ease', 'ivl', 'lastIvl', 'type'])
+CardReview = namedtuple('CardReview', ['id', 'first_learned_id', 'bucket_index', 'cid', 'ease', 'ivl', 'lastIvl', 'type'])
 
 
 # all the reviews for a particular card and length of time (e.g. day, week, etc.)
@@ -75,14 +75,22 @@ def _get_reviews(
   if db_conn and db_table:
     raise ValueError("Required either connection or table but not both")
 
+  # Set up the overall WHERE clause for the query, which filters out reviews older than the desired time window
+  # and includes whatever other additional filters where provided (e.g. filter on cards belonging to a particular deck).
   filters = []
-
   if num_buckets:
     filters.append("id >= %d" % ((day_cutoff_seconds - (bucket_size_days * num_buckets * 86400)) * 1000))
   if additional_filter:
     filters.append(additional_filter)
-
   where_clause = "WHERE %s" % (" AND ".join(filters)) if filters else ""
+
+  # Set up the WHERE clause for the subquery that finds the first time the card was learned.
+  subquery_filters = []
+  if additional_filter:
+    subquery_filters.append(additional_filter)
+  subquery_filters.append("ivl > 0")
+  subquery_filters.append("lastIvl < 0")
+  subquery_where_clause = "WHERE %s" % (" AND ".join(subquery_filters)) if subquery_filters else ""
 
   # id: The time at which the review was conducted, in epoch time (milliseconds)
   # cid: The ID of the card that was reviewed.  Also equals card creation time (milliseconds).
@@ -105,18 +113,21 @@ def _get_reviews(
   query = """\
     SELECT id,
            CAST(round(( (id/1000.0 - :day_cutoff_seconds) / 86400.0 / :bucket_size_days ) + 0.5) as int) as bucket_index,
-           cid, ease, ivl, lastIvl, type
-    FROM revlog %s
+           cid, ease, ivl, lastIvl, type,
+           first_learned_id
+    FROM revlog rl
+    LEFT JOIN (SELECT cid as fl_cid, MIN(id) as first_learned_id FROM revlog %s GROUP BY cid) fl ON fl_cid = cid
+    %s
     ORDER BY bucket_index DESC, cid DESC, id ASC;
-    """ % where_clause
+    """ % (subquery_where_clause, where_clause)
 
   result = func(query, bucket_size_days=bucket_size_days, day_cutoff_seconds=day_cutoff_seconds)
 
   all_reviews_for_bucket = {}
-  for _id, bucket_index, cid, ease, ivl, lastIvl, _type in result:
+  for _id, bucket_index, cid, ease, ivl, lastIvl, _type, first_learned_id in result:
     key = (bucket_index, cid)
     review = CardReview(
-      id=_id, bucket_index=bucket_index, cid=cid, ease=ease, ivl=ivl, lastIvl=lastIvl, type=_type)
+      id=_id, first_learned_id=first_learned_id, bucket_index=bucket_index, cid=cid, ease=ease, ivl=ivl, lastIvl=lastIvl, type=_type)
     card_reviews = all_reviews_for_bucket.get(key)
     if not card_reviews:
       card_reviews = CardReviewsForBucket(bucket_index=bucket_index, cid=cid, reviews=[])
@@ -166,9 +177,10 @@ def _has_learned(card_reviews):
   for review in card_reviews.reviews:
     # We assume the card is no longer being learned once the new interval is above zero.
     # Learning intervals are in seconds (which is expressed as a negative number).
-    # TODO need more robust way to determine card was learned for the first time.  Anki seems to mislabel
-    # cards being learned sometimes as Cram when they are in filtered deck.
-    if review.type == 0 and review.lastIvl < 0 and review.ivl > 0:
+    # Since a card can be relearned, we compare the id (which is a timestamp) to the id for the first
+    # time the card was learned.  If they don't match then this isn't the first time the card was learned.
+    # We don't use the type (which indicates learn, relearn, etc.) because it isn't reliable for filtered decks.
+    if review.lastIvl < 0 and review.ivl > 0 and review.id == review.first_learned_id:
       return True
 
   return False
