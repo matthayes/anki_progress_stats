@@ -77,20 +77,22 @@ def _get_reviews(
 
   # Set up the overall WHERE clause for the query, which filters out reviews older than the desired time window
   # and includes whatever other additional filters where provided (e.g. filter on cards belonging to a particular deck).
+
+  # The earlier time that will be used for graphing.  Any reviews earlier than this are only used to determine
+  # when each card was first learned.
+  id_cutoff = None
+
   filters = []
   if num_buckets:
-    filters.append("id >= %d" % ((day_cutoff_seconds - (bucket_size_days * num_buckets * 86400)) * 1000))
+    id_cutoff = (day_cutoff_seconds - (bucket_size_days * num_buckets * 86400)) * 1000
+    # Get all recent reviews and any earlier reviews where the card was learned.  We need to query
+    # earlier reviews because Anki's type does not appear to be reliable.  That is, you can't assume
+    # that if the type is learning (type = 0) and the ivl becomes positive that this means the card
+    # was learned for the first time.
+    filters.append("(id >= %d OR (id < %d AND ivl > 0 AND lastIvl < 0))" % (id_cutoff, id_cutoff))
   if additional_filter:
     filters.append(additional_filter)
   where_clause = "WHERE %s" % (" AND ".join(filters)) if filters else ""
-
-  # Set up the WHERE clause for the subquery that finds the first time the card was learned.
-  subquery_filters = []
-  if additional_filter:
-    subquery_filters.append(additional_filter)
-  subquery_filters.append("ivl > 0")
-  subquery_filters.append("lastIvl < 0")
-  subquery_where_clause = "WHERE %s" % (" AND ".join(subquery_filters)) if subquery_filters else ""
 
   # id: The time at which the review was conducted, in epoch time (milliseconds)
   # cid: The ID of the card that was reviewed.  Also equals card creation time (milliseconds).
@@ -113,21 +115,30 @@ def _get_reviews(
   query = """\
     SELECT id,
            CAST(round(( (id/1000.0 - :day_cutoff_seconds) / 86400.0 / :bucket_size_days ) + 0.5) as int) as bucket_index,
-           cid, ease, ivl, lastIvl, type,
-           first_learned_id
+           cid, ease, ivl, lastIvl, type
     FROM revlog rl
-    LEFT JOIN (SELECT cid as fl_cid, MIN(id) as first_learned_id FROM revlog %s GROUP BY cid) fl ON fl_cid = cid
     %s
-    ORDER BY bucket_index DESC, cid DESC, id ASC;
-    """ % (subquery_where_clause, where_clause)
+    ORDER BY id ASC;
+    """ % (where_clause)
 
   result = func(query, bucket_size_days=bucket_size_days, day_cutoff_seconds=day_cutoff_seconds)
 
+  # Maps cid to the id where the card was first learned.
+  first_learned = {}
+
   all_reviews_for_bucket = {}
-  for _id, bucket_index, cid, ease, ivl, lastIvl, _type, first_learned_id in result:
+  for _id, bucket_index, cid, ease, ivl, lastIvl, _type in result:
+    if ivl > 0 and lastIvl < 0 and cid not in first_learned:
+        first_learned[cid] = _id
+
+    # Any ids earlier than the cutoff will not be graphed.  We only queried them to determine the
+    # first time each card was learned.
+    if id_cutoff and _id < id_cutoff:
+      continue
+
     key = (bucket_index, cid)
     review = CardReview(
-      id=_id, first_learned_id=first_learned_id, bucket_index=bucket_index, cid=cid, ease=ease, ivl=ivl, lastIvl=lastIvl, type=_type)
+      id=_id, first_learned_id=first_learned.get(cid), bucket_index=bucket_index, cid=cid, ease=ease, ivl=ivl, lastIvl=lastIvl, type=_type)
     card_reviews = all_reviews_for_bucket.get(key)
     if not card_reviews:
       card_reviews = CardReviewsForBucket(bucket_index=bucket_index, cid=cid, reviews=[])
