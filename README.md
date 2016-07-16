@@ -37,6 +37,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.5: Fix issue including relearned cards in Learned Cards graph
 * 0.6: Revert recent learned cards changes pending better solution for filtered decks
 * 0.7: More robust detection of learned cards
+* 0.8: Improve graph performance
 
 ## License
 
