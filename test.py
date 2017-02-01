@@ -42,3 +42,12 @@ stats = get_stats(
   db_conn=conn,
   bucket_size_days=30, day_cutoff_seconds=cutoff)
 print(stats)
+
+def sum_values(values):
+	return sum(y for x,y in values)
+
+print("matured_cards", sum_values(stats["matured_cards"]))
+print("net_matured_cards", sum_values(stats["net_matured_cards"]))
+print("matured_reviews",sum_values(stats["matured_reviews"]))
+print("lost_matured_card", sum_values(stats["lost_matured_card"]))
+print("learned_cards", sum_values(stats["learned_cards"]))

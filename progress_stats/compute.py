@@ -89,7 +89,7 @@ def _get_reviews(
     # earlier reviews because Anki's type does not appear to be reliable.  That is, you can't assume
     # that if the type is learning (type = 0) and the ivl becomes positive that this means the card
     # was learned for the first time.
-    filters.append("(id >= %d OR (id < %d AND ivl > 0 AND lastIvl < 0))" % (id_cutoff, id_cutoff))
+    filters.append("(rl.id >= %d OR (rl.id < %d AND rl.ivl > 0 AND rl.lastIvl < 0))" % (id_cutoff, id_cutoff))
   if additional_filter:
     filters.append(additional_filter)
   where_clause = "WHERE %s" % (" AND ".join(filters)) if filters else ""
@@ -113,12 +113,12 @@ def _get_reviews(
     func = db_table.all
 
   query = """\
-    SELECT id,
-           CAST(round(( (id/1000.0 - :day_cutoff_seconds) / 86400.0 / :bucket_size_days ) + 0.5) as int) as bucket_index,
-           cid, ease, ivl, lastIvl, type
+    SELECT rl.id,
+           CAST(round(( (rl.id/1000.0 - :day_cutoff_seconds) / 86400.0 / :bucket_size_days ) + 0.5) as int) as bucket_index,
+           rl.cid, rl.ease, rl.ivl, rl.lastIvl, rl.type
     FROM revlog rl
     %s
-    ORDER BY id ASC;
+    ORDER BY rl.id ASC;
     """ % (where_clause)
 
   result = func(query, bucket_size_days=bucket_size_days, day_cutoff_seconds=day_cutoff_seconds)
@@ -148,7 +148,7 @@ def _get_reviews(
   return all_reviews_for_bucket
 
 
-def _has_matured(card_reviews):
+def _has_matured(card_reviews, last_ivl):
   """Check if the card started the length of time as not mature and ended as mature."""
 
   # We compare the first and last reviews of the bucket.  If we counted each individual
@@ -156,9 +156,9 @@ def _has_matured(card_reviews):
   # maturity during the interval.  We only care if the net change over the interval was
   # becoming mature.
 
-  first_review = card_reviews.reviews[0]
   last_review = card_reviews.reviews[-1]
-  return first_review.lastIvl < 21 and last_review.ivl >= 21
+  # Don't use lastIvl because it isn't always correct.
+  return last_ivl < 21 and last_review.ivl >= 21
 
 
 def _num_matured(card_reviews):
@@ -172,11 +172,11 @@ def _num_matured(card_reviews):
 
   return tot
 
-def _has_lost_matured(card_reviews):
+def _has_lost_matured(card_reviews, last_ivl):
   "Check if the card has lost maturity for the current length of time."
-  first_review = card_reviews.reviews[0]
   last_review = card_reviews.reviews[-1]
-  return first_review.lastIvl >= 21 and last_review.ivl < 21
+  # Don't use lastIvl because it isn't always correct.
+  return last_ivl >= 21 and last_review.ivl < 21
 
 
 def _has_learned(card_reviews):
@@ -245,12 +245,16 @@ def get_stats(
     return stats_by_name
 
   stats_by_bucket = {}
-  for key in all_reviews_for_bucket:
+  last_ivl_by_cid = {}
+  # sort by bucket
+  for key in sorted(all_reviews_for_bucket, key=lambda k: k[0]):
     # Get reviews for a particular card in a particular bucket.
     # The key is (bucket_index, cid).
     card_reviews = all_reviews_for_bucket[key]
 
     bucket_index, cid = key
+
+    last_ivl = last_ivl_by_cid.get(cid, 0)
 
     if bucket_index < min_bucket_index:
       min_bucket_index = bucket_index
@@ -263,16 +267,18 @@ def get_stats(
       bucket_stats = _new_bucket_stats(bucket_index)
       stats_by_bucket[bucket_index] = bucket_stats
 
-    if _has_matured(card_reviews):
+    if _has_matured(card_reviews, last_ivl):
       bucket_stats.stats.matured_cards += 1
 
     bucket_stats.stats.matured_reviews += _num_matured(card_reviews)
 
-    if _has_lost_matured(card_reviews):
+    if _has_lost_matured(card_reviews, last_ivl):
       bucket_stats.stats.lost_matured_card += 1
 
     if _has_learned(card_reviews):
       bucket_stats.stats.learned_cards += 1
+
+    last_ivl_by_cid[cid] = card_reviews.reviews[-1].ivl
 
   for bucket_index in range(min_bucket_index, max_bucket_index + 1):
     # Fill in days missing reviews with zero values
