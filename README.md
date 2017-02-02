@@ -39,6 +39,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.7: More robust detection of learned cards
 * 0.8: Improve graph performance
 * 0.9: Fix calculation of matured cards due to apparent lastIvl bug in revlog table
+* 0.10: Fix bug with last_ivl leading to overcounting of mature cards
 
 ## License
 
