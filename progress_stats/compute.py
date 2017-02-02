@@ -156,8 +156,13 @@ def _has_matured(card_reviews, last_ivl):
   # maturity during the interval.  We only care if the net change over the interval was
   # becoming mature.
 
+  first_review = card_reviews.reviews[0]
   last_review = card_reviews.reviews[-1]
-  # Don't use lastIvl because it isn't always correct.
+
+  # Prefer last_ivl if available because lastIvl isn't always correct (Anki bug?).
+  if not last_ivl:
+    last_ivl = first_review.lastIvl
+
   return last_ivl < 21 and last_review.ivl >= 21
 
 
@@ -174,8 +179,13 @@ def _num_matured(card_reviews):
 
 def _has_lost_matured(card_reviews, last_ivl):
   "Check if the card has lost maturity for the current length of time."
+  first_review = card_reviews.reviews[0]
   last_review = card_reviews.reviews[-1]
-  # Don't use lastIvl because it isn't always correct.
+
+  # Prefer last_ivl if available because lastIvl isn't always correct (Anki bug?).
+  if not last_ivl:
+    last_ivl = first_review.lastIvl
+
   return last_ivl >= 21 and last_review.ivl < 21
 
 
