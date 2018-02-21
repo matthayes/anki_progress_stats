@@ -7,8 +7,3 @@ install: "make init"
 script:
   - make test
 cache: pip
-jobs:
-  include:
-    - stage: test
-      script:
-        - make test
