@@ -2,3 +2,4 @@
 .python-version
 *.pyc
 *.anki2
+.pytest_cache
