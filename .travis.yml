@@ -4,6 +4,8 @@ python:
   - "2.7"
   - "3.6"
 install: "make init"
+script:
+  - make test
 cache: pip
 jobs:
   include:
