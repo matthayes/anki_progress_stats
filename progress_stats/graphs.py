@@ -15,6 +15,7 @@
 import json
 import math
 from progress_stats.compute import get_stats
+from anki.lang import _
 
 
 colYoung = "#7c7"
