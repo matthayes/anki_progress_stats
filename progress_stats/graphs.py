@@ -221,7 +221,7 @@ def _plot(self, data, title, subtitle, bucket_size_days,
   yaxes = [dict(min=0, max=max_yaxis)]
 
   if include_cumulative:
-    yaxes.append(dict(min=0, max=_round_up_max(cumulative_total), position="right"))
+    yaxes.append(dict(min=0, max=_round_up_max(max(y for x, y in cumulative_data)), position="right"))
 
   txt += _graph(
     self,
