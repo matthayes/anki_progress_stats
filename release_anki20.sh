@@ -12,8 +12,8 @@ cp progress_stats/__init__.py $TEMP_DIR/progress_stats
 cp progress_stats/compute.py $TEMP_DIR/progress_stats
 cp progress_stats/graphs.py $TEMP_DIR/progress_stats
 pushd $TEMP_DIR
-zip -r anki_progress_stats.ankiaddon .
+zip -r anki_progress_stats.zip .
 echo Moving package to $TARGET_DIR
-mv anki_progress_stats.ankiaddon $TARGET_DIR
+mv anki_progress_stats.zip $TARGET_DIR
 popd
 rm -rf $TEMP_DIR
