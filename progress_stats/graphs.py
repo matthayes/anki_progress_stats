@@ -14,7 +14,7 @@
 
 import json
 import math
-from progress_stats.compute import get_stats
+from .compute import get_stats
 from anki.lang import _
 
 

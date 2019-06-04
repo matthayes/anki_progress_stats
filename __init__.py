@@ -11,3 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from .progress_stats.graphs import progressGraphs
+
+import anki.stats
+from anki.hooks import wrap
+
+
+anki.stats.CollectionStats.cardGraph = \
+  wrap(anki.stats.CollectionStats.cardGraph, progressGraphs, pos="")
