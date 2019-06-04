@@ -8,6 +8,7 @@ TEMP_DIR=`mktemp -d`
 echo Using temp dir $TEMP_DIR
 cp __init__.py $TEMP_DIR
 cp chart_progress.py $TEMP_DIR
+cp manifest.json $TEMP_DIR
 mkdir $TEMP_DIR/progress_stats
 cp progress_stats/__init__.py $TEMP_DIR/progress_stats
 cp progress_stats/compute.py $TEMP_DIR/progress_stats
