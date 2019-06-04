@@ -1,12 +1,11 @@
 init:
-	pip install pipenv --upgrade
-	pipenv install --dev --skip-lock
+	pip install -r requirements.txt
 
 test:
-	pipenv run py.test
+	py.test
 
 flake8:
-	pipenv run flake8 --ignore=E501
+	flake8 --ignore=E501
 
 release_anki20:
 	./release_anki20.sh

@@ -1,9 +1,9 @@
 sudo: false
 language: python
 python:
-  - "2.7"
   - "3.6"
 install: "make init"
 script:
+  - make flake8
   - make test
 cache: pip
