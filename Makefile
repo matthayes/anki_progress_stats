@@ -7,3 +7,6 @@ test:
 
 flake8:
 	pipenv run flake8 --ignore=E501
+
+release:
+	./release.sh

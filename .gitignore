@@ -3,3 +3,4 @@
 *.pyc
 *.anki2
 .pytest_cache
+target
