@@ -19,4 +19,4 @@ from anki.hooks import wrap
 
 
 anki.stats.CollectionStats.cardGraph = \
-  wrap(anki.stats.CollectionStats.cardGraph, progressGraphs, pos="")
+    wrap(anki.stats.CollectionStats.cardGraph, progressGraphs, pos="")

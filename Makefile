@@ -1,11 +1,11 @@
 init:
 	pip install -r requirements.txt
 
-test:
-	py.test
+# test:
+# 	py.test
 
 flake8:
-	flake8 --ignore=E501
+	flake8
 
 release_anki20:
 	./release_anki20.sh

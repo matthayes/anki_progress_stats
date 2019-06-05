@@ -5,5 +5,4 @@ python:
 install: "make init"
 script:
   - make flake8
-  - make test
 cache: pip
