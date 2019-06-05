@@ -2,6 +2,8 @@
 
 This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.  You can find it listed under Anki addons [here](https://ankiweb.net/shared/info/266436365).
 
+[![Build Status](https://travis-ci.org/matthayes/anki_progress_stats.svg?branch=master)](https://travis-ci.org/matthayes/anki_progress_stats)
+
 ## Graphs
 
 ### Learned Cards
