@@ -43,6 +43,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.9: Fix calculation of matured cards due to apparent lastIvl bug in revlog table
 * 0.10: Fix bug with last_ivl leading to overcounting of mature cards
 * 0.11: Fix import warning about _ (thanks klieret). Set absolute maximum value of cumulative line as ymax (thanks mattbenscho).
+* 0.12: Move graphs above pie chart.
 
 ## License
 
