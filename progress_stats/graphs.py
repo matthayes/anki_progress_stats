@@ -93,105 +93,6 @@ def _round_up_max(max_val):
     return math.ceil(float(max_val) / m) * m
 
 
-# Copied from Anki with the following changes:
-# - Set tickDecimals to 0.
-# - Update tickFormatter to show 1 decimal unless whole number
-# TODO pull request to Anki to include these changes
-def _graph(self, id, data, conf={},
-           type="bars", ylabel=_("Cards"), timeTicks=True, ylabel2=""):
-    # display settings
-    if type == "pie":
-        conf['legend'] = {'container': "#%sLegend" % id, 'noColumns': 2}
-    else:
-        conf['legend'] = {'container': "#%sLegend" % id, 'noColumns': 10}
-    conf['series'] = dict(stack=True)
-    if 'yaxis' not in conf:
-        conf['yaxis'] = {}
-    conf['yaxis']['labelWidth'] = 40
-    if 'xaxis' not in conf:
-        conf['xaxis'] = {}
-    if timeTicks:
-        conf['timeTicks'] = (_("d"), _("w"), _("mo"))[self.type]
-    # types
-    width = self.width
-    height = self.height
-    if type == "bars":
-        conf['series']['bars'] = dict(
-            show=True, barWidth=0.8, align="center", fill=0.7, lineWidth=0)
-    elif type == "barsLine":
-        conf['series']['bars'] = dict(
-            show=True, barWidth=0.8, align="center", fill=0.7, lineWidth=3)
-    elif type == "fill":
-        conf['series']['lines'] = dict(show=True, fill=True)
-    elif type == "pie":
-        width /= 2.3
-        height *= 1.5
-        ylabel = ""
-        conf['series']['pie'] = dict(
-            show=True,
-            radius=1,
-            stroke=dict(color="#fff", width=5),
-            label=dict(
-                show=True,
-                radius=0.8,
-                threshold=0.01,
-                background=dict(
-                    opacity=0.5,
-                    color="#000"
-                )))
-
-        # conf['legend'] = dict(show=False)
-
-    html_template = """
-      <table cellpadding=0 cellspacing=10>
-      <tr>
-
-      <td><div style="width: 150px; text-align: center; position:absolute;
-       -webkit-transform: rotate(-90deg) translateY(-85px);
-      font-weight: bold;
-      ">%(ylab)s</div></td>
-
-      <td>
-      <center><div id=%(id)sLegend></div></center>
-      <div id="%(id)s" style="width:%(w)spx; height:%(h)spx;"></div>
-      </td>
-
-      <td><div style="width: 150px; text-align: center; position:absolute;
-       -webkit-transform: rotate(90deg) translateY(65px);
-      font-weight: bold;
-      ">%(ylab2)s</div></td>
-
-      </tr></table>
-      <script>
-      $(function () {
-          var conf = %(conf)s;
-          if (conf.timeTicks) {
-              conf.xaxis.tickFormatter = function (val, axis) {
-                  return val.toFixed(0)+conf.timeTicks;
-              }
-          }
-          conf.yaxis.minTickSize = 1;
-          // prevent ticks from having decimals, choose whole numbers instead
-          conf.yaxis.tickDecimals = 0;
-          conf.yaxis.tickFormatter = function (val, axis) {
-                  // include the decimal if val isn't a whole number
-                  return val === Math.round(val) ? val.toFixed(0) : val.toFixed(1);
-          }
-          if (conf.series.pie) {
-              conf.series.pie.label.formatter = function(label, series){
-                  return '<div class=pielabel>'+Math.round(series.percent)+'%%</div>';
-              };
-          }
-          $.plot($("#%(id)s"), %(data)s, conf);
-      });
-      </script>"""
-
-    return (html_template % dict(
-            id=id, w=width, h=height,
-            ylab=ylabel, ylab2=ylabel2,
-            data=json.dumps(data), conf=json.dumps(conf)))
-
-
 def _plot(self, data, title, subtitle, bucket_size_days,
           include_cumulative=False,
           color=defaultColor):
@@ -225,8 +126,7 @@ def _plot(self, data, title, subtitle, bucket_size_days,
     if include_cumulative:
         yaxes.append(dict(min=0, max=_round_up_max(max(y for x, y in cumulative_data)), position="right"))
 
-    txt += _graph(
-        self,
+    txt += self._graph(
         id="progress-%s" % _num_graphs,
         data=graph_data,
         conf=dict(
