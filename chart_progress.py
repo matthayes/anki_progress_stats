@@ -18,5 +18,5 @@ import anki.stats
 from anki.hooks import wrap
 
 
-anki.stats.CollectionStats.cardGraph = \
-    wrap(anki.stats.CollectionStats.cardGraph, progressGraphs, pos="")
+anki.stats.CollectionStats.easeGraph = \
+    wrap(anki.stats.CollectionStats.easeGraph, progressGraphs, pos="")
