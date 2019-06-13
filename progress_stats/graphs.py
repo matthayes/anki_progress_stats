@@ -107,6 +107,18 @@ def _round_up_max(max_val):
     return math.ceil(float(max_val) / m) * m
 
 
+def _round_down_min(min_val):
+    "Rounds down a minimum value."
+
+    # Minimum should not be positive
+    min_val = min(0, min_val)
+
+    if not min_val:
+        return 0
+
+    return -1 * _round_up_max(-1 * min_val)
+
+
 def _plot(self, data, title, subtitle, bucket_size_days,
           include_cumulative=False,
           color=defaultColor):
@@ -134,10 +146,13 @@ def _plot(self, data, title, subtitle, bucket_size_days,
                  lines=dict(show=True),
                  stack=False))
 
-    yaxes = [dict(min=0, max=_round_up_max(max(y for x, y in data)))]
+    yaxes = [dict(min=_round_down_min(min(y for x, y in data)),
+                  max=_round_up_max(max(y for x, y in data)))]
 
     if include_cumulative:
-        yaxes.append(dict(min=0, max=_round_up_max(max(y for x, y in cumulative_data)), position="right"))
+        yaxes.append(dict(min=_round_down_min(min(y for x, y in cumulative_data)),
+                          max=_round_up_max(max(y for x, y in cumulative_data)),
+                          position="right"))
 
     graph_kwargs = {
         "id": "progress-%s" % _num_graphs,
@@ -151,7 +166,7 @@ def _plot(self, data, title, subtitle, bucket_size_days,
     # labelling.  The old version picked the tick labels based on the graph type (last month, last year,
     # or deck life).  Now for deck life it picks the appropriate bucket size based on the age of the deck.
     try:
-        if "xunit" in  inspect.getargspec(self._graph).args:
+        if "xunit" in inspect.getargspec(self._graph).args:
             graph_kwargs["xunit"] = bucket_size_days
     except Exception:
         pass
