@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
 import math
 from .compute import get_stats
 from anki.lang import _
@@ -29,15 +30,29 @@ def progressGraphs(*args, **kwargs):
     self = args[0]
     old = kwargs['_old']
 
-    if self.type == 0:
-        num_buckets = 30
-        bucket_size_days = 1
-    elif self.type == 1:
-        num_buckets = 52
-        bucket_size_days = 7
+    # Try to use get_start_end_chunk if it exists to get the bucketing parameters
+    # so the plugin graphs are consistent with Anki's other graphs.  This function only
+    # exists for recent versions of Anki.
+    if hasattr(self, "get_start_end_chunk"):
+        start_not_used, num_buckets, bucket_size_days = self.get_start_end_chunk()
+
+    # Fallback for older versions of Anki without this method.  Backporting the newer logic is
+    # a bit complicated.  Note that the fallback values for type 2 don't work well for decks where
+    # the deck life is very short (e.g. one or two months), but we'll just have to live with this.
+    # The best option is for users to use Anki 2.1.
     else:
-        num_buckets = None
-        bucket_size_days = 30
+        if self.type == 0:
+            # type 0 = past month
+            num_buckets = 31
+            bucket_size_days = 1
+        elif self.type == 1:
+            # type 1 = past year
+            num_buckets = 52
+            bucket_size_days = 7
+        else:
+            # type 2 = deck life
+            num_buckets = None
+            bucket_size_days = 31
 
     stats = get_stats(
         db_table=self.col.db,
@@ -101,7 +116,6 @@ def _plot(self, data, title, subtitle, bucket_size_days,
         return ""
     cumulative_total = 0
     cumulative_data = []
-    max_yaxis = _round_up_max(max(y for x, y in data))
     for (x, y) in data:
         cumulative_total += y
         cumulative_data.append((x, cumulative_total))
@@ -120,17 +134,29 @@ def _plot(self, data, title, subtitle, bucket_size_days,
                  lines=dict(show=True),
                  stack=False))
 
-    yaxes = [dict(min=0, max=max_yaxis)]
+    yaxes = [dict(min=0, max=_round_up_max(max(y for x, y in data)))]
 
     if include_cumulative:
         yaxes.append(dict(min=0, max=_round_up_max(max(y for x, y in cumulative_data)), position="right"))
 
-    txt += self._graph(
-        id="progress-%s" % _num_graphs,
-        data=graph_data,
-        conf=dict(
-            xaxis=dict(max=0.5),
-            yaxes=yaxes))
+    graph_kwargs = {
+        "id": "progress-%s" % _num_graphs,
+        "data": graph_data,
+        "conf": dict(
+            xaxis=dict(max=0.5, tickDecimals=0),
+            yaxes=yaxes)
+    }
+
+    # In recent versions of Anki, an xunit arg was added to _graph to control the tick
+    # labelling.  The old version picked the tick labels based on the graph type (last month, last year,
+    # or deck life).  Now for deck life it picks the appropriate bucket size based on the age of the deck.
+    try:
+        if "xunit" in  inspect.getargspec(self._graph).args:
+            graph_kwargs["xunit"] = bucket_size_days
+    except Exception:
+        pass
+
+    txt += self._graph(**graph_kwargs)
 
     _num_graphs += 1
 
