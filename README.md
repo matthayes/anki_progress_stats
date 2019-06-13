@@ -44,6 +44,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.10: Fix bug with last_ivl leading to overcounting of mature cards
 * 0.11: Fix import warning about _ (thanks klieret). Set absolute maximum value of cumulative line as ymax (thanks mattbenscho).
 * 0.12: Move graphs above pie chart.
+* 0.13: Set y axis min based on data. Fix bucket labels for Anki 2.1. Fix deck life bucket ticks for young decks.
 
 ## License
 
