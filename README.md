@@ -49,7 +49,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 
 ## License
 
-Copyright 2016 Matthew Hayes
+Copyright 2016-2019 Matthew Hayes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
