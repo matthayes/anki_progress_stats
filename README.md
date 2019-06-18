@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/matthayes/anki_progress_stats.svg?branch=master)](https://travis-ci.org/matthayes/anki_progress_stats)
 
+[![Release](https://img.shields.io/badge/release-v0.13-brightgreen.svg)](https://github.com/matthayes/anki_progress_stats/releases/tag/v0.13)
+
 This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.  You can find it listed under Anki addons [here](https://ankiweb.net/shared/info/266436365).
 
 ## Graphs
