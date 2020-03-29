@@ -47,6 +47,7 @@ Anki includes a Review Count graph that plots the total reviews for learning, re
 * 0.12: Move graphs above pie chart.
 * 0.13: Set y axis min based on data. Fix bucket labels for Anki 2.1. Fix deck life bucket ticks for young decks.
 * 0.14: Fix issue with incorrect x axis tick units in some scenarios.
+* 0.15: Fix issue computing stats for beta of Anki 2.1.24.
 
 ## License
 
