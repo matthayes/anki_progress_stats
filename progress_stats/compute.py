@@ -48,8 +48,7 @@ class ProgressStats:
 BucketStats = namedtuple('BucketStats', ['bucket_index', 'stats'])
 
 
-def _get_reviews(bucket_size_days, day_cutoff_seconds, num_buckets=None, additional_filter=None,
-                 db_conn=None, db_table=None):
+def _get_reviews(db_table, bucket_size_days, day_cutoff_seconds, num_buckets=None, additional_filter=None):
     """Fetches all the reviews over a period of time and buckets them by (bucket_index, cid), where
     cid is the card ID and bucket_index where 0 is today, -1 is yesterday, etc.
 
@@ -63,17 +62,11 @@ def _get_reviews(bucket_size_days, day_cutoff_seconds, num_buckets=None, additio
     fetched to fill all the buckets.  So, for example, if bucket_size_days is 1 and num_buckets is 30 this fetches
     the last month of reviews.
 
-    db_conn and db_table are the connection or table used to fetch from the review logs.  Only one should be specified.
+    db_table is the table used to fetch from the review logs.
 
     additional_filter is an (optiona) filter added to the SQL WHERE clause that limits which reviews to fetch.
     This can be used to limit the reviews to a particular deck, for example.
     """
-
-    if not db_conn and not db_table:
-        raise ValueError("Required either connection or table")
-
-    if db_conn and db_table:
-        raise ValueError("Required either connection or table but not both")
 
     # Set up the overall WHERE clause for the query, which filters out reviews older than the desired time window
     # and includes whatever other additional filters where provided (e.g. filter on cards belonging to a particular
@@ -108,22 +101,17 @@ def _get_reviews(bucket_size_days, day_cutoff_seconds, num_buckets=None, additio
     # Convert the time to the day, where 0 is today (i.e. after the cutoff for today), -1 is yesterday, etc.
     # We add 0.5 and round in order to round up.
 
-    if db_conn:
-        func = db_conn.execute
-    else:
-        func = db_table.all
-
     query = """\
       SELECT rl.id,
-             CAST(round(( (rl.id/1000.0 - :day_cutoff_seconds) / 86400.0 / :bucket_size_days ) + 0.5) as int)
+             CAST(round(( (rl.id/1000.0 - %d) / 86400.0 / %d ) + 0.5) as int)
                as bucket_index,
              rl.cid, rl.ease, rl.ivl, rl.lastIvl, rl.type
       FROM revlog rl
       %s
       ORDER BY rl.id ASC;
-      """ % (where_clause)
+      """ % (day_cutoff_seconds, bucket_size_days, where_clause)
 
-    result = func(query, bucket_size_days=bucket_size_days, day_cutoff_seconds=day_cutoff_seconds)
+    result = db_table.all(query)
 
     # Maps cid to the id where the card was first learned.
     first_learned = {}
@@ -215,8 +203,7 @@ def _new_bucket_stats(bucket_index):
     return BucketStats(bucket_index=bucket_index, stats=ProgressStats())
 
 
-def get_stats(bucket_size_days, day_cutoff_seconds, num_buckets=None, additional_filter=None,
-              db_conn=None, db_table=None):
+def get_stats(db_table, bucket_size_days, day_cutoff_seconds, num_buckets=None, additional_filter=None):
     """Returns progress statistics bucketed by bucket_size_days.  The statistics are:
 
     matured_cards: number of cards that went from young to mature
@@ -235,7 +222,7 @@ def get_stats(bucket_size_days, day_cutoff_seconds, num_buckets=None, additional
     fetched to fill all the buckets.  So, for example, if bucket_size_days is 1 and num_buckets is 30 this fetches
     the last month of reviews.
 
-    db_conn and db_table are the connection or table used to fetch from the review logs.  Only one should be specified.
+    db_table is the table used to fetch from the review logs.
 
     additional_filter is an (optiona) filter added to the SQL WHERE clause that limits which reviews to fetch.
     This can be used to limit the reviews to a particular deck, for example.
@@ -249,8 +236,7 @@ def get_stats(bucket_size_days, day_cutoff_seconds, num_buckets=None, additional
     max_bucket_index = 0
 
     all_reviews_for_bucket = _get_reviews(
-        bucket_size_days, day_cutoff_seconds, num_buckets, additional_filter,
-        db_conn=db_conn, db_table=db_table)
+        db_table, bucket_size_days, day_cutoff_seconds, num_buckets, additional_filter)
 
     # If there is no review data then return empty dictionary. No graphs should be plotted.
     if not all_reviews_for_bucket:

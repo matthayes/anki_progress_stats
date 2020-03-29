@@ -39,6 +39,7 @@ def get_next_day_cutoff_seconds(hour):
 
 cutoff = get_next_day_cutoff_seconds(4)  # 4 am cutoff
 
+# TODO this won't work because db_conn has been removed.  Need to pass the table instead.
 stats = get_stats(
     db_conn=conn,
     bucket_size_days=30, day_cutoff_seconds=cutoff)
