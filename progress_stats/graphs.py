@@ -166,7 +166,7 @@ def _plot(self, data, title, subtitle, bucket_size_days,
     # labelling.  The old version picked the tick labels based on the graph type (last month, last year,
     # or deck life).  Now for deck life it picks the appropriate bucket size based on the age of the deck.
     try:
-        if "xunit" in inspect.getargspec(self._graph).args:
+        if "xunit" in inspect.signature(self._graph).parameters:
             graph_kwargs["xunit"] = bucket_size_days
     except Exception:
         pass
