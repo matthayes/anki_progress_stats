@@ -5,6 +5,8 @@
 
 This is a plugin for [Anki](http://ankisrs.net/) that adds the following graphs.  You can find it listed under Anki addons [here](https://ankiweb.net/shared/info/266436365).
 
+**Important:** For Anki versions 2.1.28 and higher you need to shift+click on the stats link to view the old stats page with these graphs.
+
 ## Graphs
 
 ### Learned Cards
